@@ -1,0 +1,1365 @@
+<!DOCTYPE html>
+<html lang="id">
+
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Maze Solver — 2 Algorithms</title>
+  <style>
+    *,
+    *::before,
+    *::after {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    :root {
+      --bg: #0d1117;
+      --surface: #161b22;
+      --surface2: #21262d;
+      --border: #30363d;
+      --text: #e6edf3;
+      --muted: #8b949e;
+      --green: #3fb950;
+      --blue: #58a6ff;
+      --orange: #ffa657;
+      --red: #f78166;
+      --purple: #bc8cff;
+      --teal: #39d3c3;
+      --yellow: #e3b341;
+
+      --rb: #1E90FF;
+      --bt: #FF4444;
+    }
+
+    body {
+      background: var(--bg);
+      color: var(--text);
+      font-family: 'Segoe UI', system-ui, sans-serif;
+      font-size: 14px;
+      line-height: 1.6;
+      min-height: 100vh;
+    }
+
+    /* ── HEADER ── */
+    header {
+      border-bottom: 1px solid var(--border);
+      padding: 18px 28px;
+      display: flex;
+      align-items: center;
+      gap: 14px;
+    }
+
+    .logo {
+      width: 36px;
+      height: 36px;
+      background: linear-gradient(135deg, var(--blue), var(--purple));
+      border-radius: 8px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 18px;
+    }
+
+    header h1 {
+      font-size: 18px;
+      font-weight: 600;
+      color: var(--text);
+    }
+
+    header p {
+      font-size: 12px;
+      color: var(--muted);
+      margin-top: 1px;
+    }
+
+    .status-pill {
+      margin-left: auto;
+      padding: 4px 12px;
+      border-radius: 20px;
+      font-size: 12px;
+      font-weight: 500;
+      border: 1px solid var(--border);
+      color: var(--muted);
+      transition: all .3s;
+    }
+
+    .status-pill.online {
+      border-color: var(--green);
+      color: var(--green);
+      background: #3fb95015;
+    }
+
+    .status-pill.offline {
+      border-color: var(--red);
+      color: var(--red);
+      background: #f7816615;
+    }
+
+    /* ── LAYOUT ── */
+    .layout {
+      display: grid;
+      grid-template-columns: 340px 1fr;
+      gap: 0;
+      height: calc(100vh - 73px);
+    }
+
+    .sidebar {
+      border-right: 1px solid var(--border);
+      overflow-y: auto;
+      padding: 20px;
+      display: flex;
+      flex-direction: column;
+      gap: 16px;
+    }
+
+    .main {
+      overflow-y: auto;
+      padding: 20px;
+      display: flex;
+      flex-direction: column;
+      gap: 20px;
+    }
+
+    /* ── CARDS ── */
+    .card {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      padding: 16px;
+    }
+
+    .card-title {
+      font-size: 12px;
+      font-weight: 600;
+      color: var(--muted);
+      text-transform: uppercase;
+      letter-spacing: .06em;
+      margin-bottom: 12px;
+    }
+
+    /* ── ALGO SELECTOR ── */
+    .algo-tabs {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 6px;
+    }
+
+    .algo-tab {
+      padding: 8px 10px;
+      border: 1px solid var(--border);
+      border-radius: 7px;
+      background: var(--surface2);
+      color: var(--muted);
+      cursor: pointer;
+      font-size: 12px;
+      font-weight: 500;
+      transition: all .2s;
+      text-align: left;
+    }
+
+    .algo-tab .dot {
+      display: inline-block;
+      width: 8px;
+      height: 8px;
+      border-radius: 50%;
+      margin-right: 6px;
+    }
+
+    .algo-tab:hover {
+      border-color: #484f58;
+      color: var(--text);
+    }
+
+    .algo-tab.active {
+      color: var(--text);
+    }
+
+    .algo-tab[data-algo="recursive_backtracking"].active {
+      border-color: var(--rb);
+      background: #1E90FF10;
+    }
+
+    .algo-tab[data-algo="binary_tree"].active {
+      border-color: var(--bt);
+      background: #FF444410;
+    }
+
+    .algo-desc {
+      font-size: 12px;
+      color: var(--muted);
+      margin-top: 8px;
+      padding: 8px 10px;
+      border-left: 2px solid var(--border);
+      line-height: 1.5;
+    }
+
+    /* ── MAZE INPUT ── */
+    textarea {
+      width: 100%;
+      height: 160px;
+      background: var(--bg);
+      color: var(--text);
+      border: 1px solid var(--border);
+      border-radius: 6px;
+      padding: 10px;
+      font-family: 'Courier New', monospace;
+      font-size: 13px;
+      resize: vertical;
+    }
+
+    textarea:focus {
+      outline: none;
+      border-color: var(--blue);
+    }
+
+    /* ── CONTROLS ── */
+    .controls {
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+    }
+
+    .field-row {
+      display: flex;
+      gap: 8px;
+    }
+
+    .field {
+      display: flex;
+      flex-direction: column;
+      gap: 4px;
+      flex: 1;
+    }
+
+    .field label {
+      font-size: 11px;
+      color: var(--muted);
+    }
+
+    input[type=number] {
+      background: var(--bg);
+      color: var(--text);
+      border: 1px solid var(--border);
+      border-radius: 6px;
+      padding: 7px 10px;
+      width: 100%;
+      font-size: 13px;
+    }
+
+    input[type=number]:focus {
+      outline: none;
+      border-color: var(--blue);
+    }
+
+    .btn-row {
+      display: flex;
+      gap: 8px;
+      flex-wrap: wrap;
+    }
+
+    button {
+      padding: 8px 14px;
+      border: none;
+      border-radius: 7px;
+      cursor: pointer;
+      font-size: 13px;
+      font-weight: 600;
+      transition: all .15s;
+    }
+
+    .btn-primary {
+      background: #238636;
+      color: #fff;
+    }
+
+    .btn-primary:hover {
+      background: #2ea043;
+    }
+
+    .btn-secondary {
+      background: var(--surface2);
+      color: var(--text);
+      border: 1px solid var(--border);
+    }
+
+    .btn-secondary:hover {
+      background: var(--border);
+    }
+
+    .btn-compare {
+      background: #1f3a5f;
+      color: var(--blue);
+      border: 1px solid #2d5a8e;
+    }
+
+    .btn-compare:hover {
+      background: #2d5a8e;
+    }
+
+    .btn-danger {
+      background: #3d1f1f;
+      color: var(--red);
+      border: 1px solid #5a2d2d;
+    }
+
+    .btn-danger:hover {
+      background: #5a2d2d;
+    }
+
+    /* ── METRICS ── */
+    .metrics-grid {
+      display: grid;
+      grid-template-columns: repeat(2, 1fr);
+      gap: 8px;
+    }
+
+    .metric {
+      background: var(--bg);
+      border: 1px solid var(--border);
+      border-radius: 7px;
+      padding: 10px 12px;
+    }
+
+    .metric-label {
+      font-size: 11px;
+      color: var(--muted);
+      margin-bottom: 2px;
+    }
+
+    .metric-value {
+      font-size: 18px;
+      font-weight: 600;
+      color: var(--text);
+    }
+
+    .metric-value.good {
+      color: var(--green);
+    }
+
+    .metric-value.warn {
+      color: var(--orange);
+    }
+
+    .metric-value.bad {
+      color: var(--red);
+    }
+
+    /* ── CANVAS ── */
+    .canvas-wrap {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      padding: 16px;
+    }
+
+    .canvas-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: 12px;
+    }
+
+    .canvas-title {
+      font-size: 13px;
+      font-weight: 600;
+      color: var(--text);
+    }
+
+    .algo-badge {
+      font-size: 11px;
+      padding: 3px 10px;
+      border-radius: 20px;
+      font-weight: 600;
+    }
+
+    canvas {
+      border-radius: 6px;
+      display: block;
+      max-width: 100%;
+    }
+
+    .legend {
+      display: flex;
+      gap: 14px;
+      flex-wrap: wrap;
+      margin-top: 12px;
+      font-size: 12px;
+      color: var(--muted);
+    }
+
+    .legend-item {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+
+    .swatch {
+      width: 13px;
+      height: 13px;
+      border-radius: 3px;
+      flex-shrink: 0;
+    }
+
+    /* ── COMPARE TABLE ── */
+    .compare-grid {
+      display: grid;
+      grid-template-columns: repeat(2, 1fr);
+      gap: 8px;
+    }
+
+    .compare-col {
+      background: var(--bg);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      overflow: hidden;
+    }
+
+    .compare-col-header {
+      padding: 8px 10px;
+      font-size: 11px;
+      font-weight: 600;
+      border-bottom: 1px solid var(--border);
+    }
+
+    .compare-col-body {
+      padding: 10px;
+    }
+
+    .compare-row {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      font-size: 12px;
+      padding: 4px 0;
+      border-bottom: 1px solid var(--border);
+      gap: 4px;
+    }
+
+    .compare-row:last-child {
+      border-bottom: none;
+    }
+
+    .compare-key {
+      color: var(--muted);
+      white-space: nowrap;
+    }
+
+    .compare-val {
+      font-weight: 600;
+      text-align: right;
+    }
+
+    /* ── MINI CANVASES ── */
+    .mini-canvas-grid {
+      display: grid;
+      grid-template-columns: repeat(2, 1fr);
+      gap: 12px;
+    }
+
+    .mini-canvas-wrap {
+      background: var(--bg);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      padding: 12px;
+    }
+
+    .mini-canvas-title {
+      font-size: 12px;
+      font-weight: 600;
+      margin-bottom: 8px;
+    }
+
+    canvas.mini {
+      border-radius: 4px;
+      display: block;
+      width: 100%;
+    }
+
+    /* ── LOADING ── */
+    .spinner {
+      display: inline-block;
+      width: 14px;
+      height: 14px;
+      border: 2px solid var(--border);
+      border-top-color: var(--blue);
+      border-radius: 50%;
+      animation: spin .6s linear infinite;
+      vertical-align: middle;
+      margin-right: 6px;
+    }
+
+    @keyframes spin {
+      to {
+        transform: rotate(360deg);
+      }
+    }
+
+    /* ── TOAST ── */
+    #toast {
+      position: fixed;
+      bottom: 20px;
+      right: 20px;
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      padding: 10px 16px;
+      font-size: 13px;
+      color: var(--text);
+      transform: translateY(60px);
+      opacity: 0;
+      transition: all .3s;
+      z-index: 999;
+    }
+
+    #toast.show {
+      transform: translateY(0);
+      opacity: 1;
+    }
+
+    /* ── BAR CHART ── */
+    .bar-chart {
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+    }
+
+    .bar-row {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .bar-name {
+      font-size: 11px;
+      color: var(--muted);
+      width: 140px;
+      flex-shrink: 0;
+    }
+
+    .bar-track {
+      flex: 1;
+      height: 10px;
+      background: var(--surface2);
+      border-radius: 5px;
+      overflow: hidden;
+    }
+
+    .bar-fill {
+      height: 100%;
+      border-radius: 5px;
+      transition: width .6s ease;
+    }
+
+    .bar-val {
+      font-size: 11px;
+      color: var(--muted);
+      width: 52px;
+      text-align: right;
+    }
+
+    @media (max-width: 768px) {
+      .layout {
+        grid-template-columns: 1fr;
+        height: auto;
+      }
+
+      .sidebar {
+        border-right: none;
+        border-bottom: 1px solid var(--border);
+      }
+
+      .compare-grid {
+        grid-template-columns: repeat(2, 1fr);
+      }
+
+      .mini-canvas-grid {
+        grid-template-columns: 1fr;
+      }
+    }
+
+    /* ── INPUT MODE TABS ── */
+    .mode-tabs {
+      display: flex;
+      gap: 6px;
+      margin-bottom: 10px;
+    }
+
+    .mode-tab {
+      flex: 1;
+      padding: 5px 8px;
+      border: 1px solid var(--border);
+      border-radius: 6px;
+      background: var(--surface2);
+      color: var(--muted);
+      cursor: pointer;
+      font-size: 12px;
+      font-weight: 500;
+      transition: all .2s;
+      text-align: center;
+    }
+
+    .mode-tab:hover {
+      border-color: #484f58;
+      color: var(--text);
+    }
+
+    .mode-tab.active {
+      border-color: var(--blue);
+      color: var(--blue);
+      background: #58a6ff12;
+    }
+
+    /* ── IMAGE UPLOAD ── */
+    .upload-zone {
+      border: 2px dashed var(--border);
+      border-radius: 8px;
+      padding: 20px 12px;
+      text-align: center;
+      cursor: pointer;
+      transition: all .2s;
+      color: var(--muted);
+      font-size: 12px;
+      position: relative;
+    }
+
+    .upload-zone:hover,
+    .upload-zone.drag-over {
+      border-color: var(--blue);
+      color: var(--blue);
+      background: #58a6ff08;
+    }
+
+    .upload-zone input[type=file] {
+      position: absolute;
+      inset: 0;
+      opacity: 0;
+      cursor: pointer;
+      width: 100%;
+      height: 100%;
+    }
+
+    .upload-icon {
+      font-size: 26px;
+      margin-bottom: 6px;
+    }
+
+    .upload-preview {
+      display: none;
+      margin-top: 10px;
+      position: relative;
+    }
+
+    .upload-preview img {
+      width: 100%;
+      border-radius: 6px;
+      border: 1px solid var(--border);
+    }
+
+    .remove-img {
+      position: absolute;
+      top: 5px;
+      right: 5px;
+      background: rgba(0, 0, 0, .7);
+      border: none;
+      color: #fff;
+      border-radius: 50%;
+      width: 20px;
+      height: 20px;
+      cursor: pointer;
+      font-size: 12px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      line-height: 1;
+    }
+
+    .img-config {
+      margin-top: 10px;
+      display: flex;
+      flex-direction: column;
+      gap: 7px;
+    }
+
+    .img-config label {
+      font-size: 11px;
+      color: var(--muted);
+      display: flex;
+      justify-content: space-between;
+    }
+
+    .img-config input[type=range] {
+      width: 100%;
+      accent-color: var(--blue);
+    }
+
+    #imgProcessInfo {
+      font-size: 11px;
+      color: var(--muted);
+      margin-top: 4px;
+    }
+  </style>
+</head>
+
+<body>
+
+  <!-- HEADER -->
+  <header>
+    <div>
+      <h1>Maze Solver</h1>
+      <p>Recursive Backtracking & Binary Tree — Liu (EMITI 2025)</p>
+    </div>
+    <div class="status-pill" id="statusPill">Checking...</div>
+  </header>
+
+  <div class="layout">
+
+    <!-- SIDEBAR -->
+    <aside class="sidebar">
+
+      <!-- Algorithm selector -->
+      <div class="card">
+        <div class="card-title">Pilih Algoritma</div>
+        <div class="algo-tabs">
+          <button class="algo-tab active" data-algo="recursive_backtracking" onclick="selectAlgo(this)">
+            <span class="dot" style="background:var(--rb)"></span>Recursive Backtracking
+          </button>
+          <button class="algo-tab" data-algo="binary_tree" onclick="selectAlgo(this)">
+            <span class="dot" style="background:var(--bt)"></span>Binary Tree
+          </button>
+        </div>
+        <div class="algo-desc" id="algoDesc">
+          DFS iteratif dengan explicit stack. 4 arah diacak tiap node. Backtrack dengan pop dari stack saat dead end.
+        </div>
+      </div>
+
+      <!-- Maze input -->
+      <div class="card">
+        <div class="card-title">Input Maze</div>
+        <div class="mode-tabs">
+          <button class="mode-tab active" onclick="switchMode('text', this)">Teks</button>
+          <button class="mode-tab" onclick="switchMode('image', this)">Gambar</button>
+        </div>
+
+        <!-- TEXT MODE -->
+        <div id="textMode">
+          <textarea id="mazeInput">0 1 0 0 0
+0 1 0 1 0
+0 0 0 1 0
+1 1 0 1 0
+0 0 0 0 0</textarea>
+          <p style="font-size:11px;color:var(--muted);margin-top:6px;">0 = jalan, 1 = tembok. Spasi antar angka.</p>
+        </div>
+
+        <!-- IMAGE MODE -->
+        <div id="imageMode" style="display:none">
+          <div class="upload-zone" id="uploadZone" ondragover="event.preventDefault();this.classList.add('drag-over')"
+            ondragleave="this.classList.remove('drag-over')" ondrop="handleDrop(event)">
+            <input type="file" accept="image/*" onchange="handleImageFile(this.files[0])" />
+            <div><strong>Klik atau drag gambar maze</strong></div>
+            <div style="margin-top:4px;font-size:11px;">PNG, JPG. Piksel gelap = tembok, terang = jalan</div>
+          </div>
+          <div class="upload-preview" id="uploadPreview">
+            <img id="previewImg" src="" alt="preview" />
+            <button class="remove-img" onclick="clearImage()">✕</button>
+          </div>
+          <div class="img-config" id="imgConfig" style="display:none">
+            <label>Threshold gelap/terang <span id="threshVal">180</span></label>
+            <input type="range" min="50" max="255" value="180" id="threshSlider"
+              oninput="document.getElementById('threshVal').textContent=this.value;processImage()" />
+            <label>Resolusi grid (sel) <span id="resVal">60</span></label>
+            <input type="range" min="5" max="200" value="60" id="resSlider"
+              oninput="document.getElementById('resVal').textContent=this.value;processImage()" />
+            <div id="imgProcessInfo"></div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Generate random -->
+      <div class="card">
+        <div class="card-title">Generate Maze Acak</div>
+        <div class="controls">
+          <div class="field-row">
+            <div class="field"><label>Rows</label><input type="number" id="rows" value="8" min="3" max="50"></div>
+            <div class="field"><label>Cols</label><input type="number" id="cols" value="8" min="3" max="50"></div>
+            <div class="field"><label>Density</label><input type="number" id="density" value="0.3" step="0.05" min="0.1"
+                max="0.7"></div>
+          </div>
+          <div class="btn-row">
+            <button class="btn-secondary" onclick="generateRandom()">Generate</button>
+            <button class="btn-danger" onclick="resetMaze()">✕ Reset</button>
+          </div>
+        </div>
+      </div>
+
+      <!-- Action buttons -->
+      <div class="btn-row" style="flex-direction:column;gap:8px;">
+        <button class="btn-primary" style="width:100%;padding:11px;" onclick="solveSingle()">
+          Solve dengan Algoritma Terpilih
+        </button>
+        <button class="btn-compare" style="width:100%;padding:11px;" onclick="solveAll()">
+          Bandingkan Kedua Algoritma
+        </button>
+      </div>
+
+      <!-- Single result metrics -->
+      <div class="card" id="metricsCard" style="display:none">
+        <div class="card-title">Hasil</div>
+        <div class="metrics-grid">
+          <div class="metric">
+            <div class="metric-label">Path length</div>
+            <div class="metric-value" id="mPath">—</div>
+          </div>
+          <div class="metric">
+            <div class="metric-label">Waktu (ms)</div>
+            <div class="metric-value" id="mTime">—</div>
+          </div>
+          <div class="metric">
+            <div class="metric-label">Recursion depth</div>
+            <div class="metric-value" id="mDepth">—</div>
+          </div>
+          <div class="metric">
+            <div class="metric-label">Jalur ditemukan</div>
+            <div class="metric-value" id="mFound">—</div>
+          </div>
+        </div>
+      </div>
+
+    </aside>
+
+    <!-- MAIN -->
+    <main class="main">
+
+      <!-- Single solve canvas -->
+      <div class="canvas-wrap" id="singleSection">
+        <div class="canvas-header">
+          <span class="canvas-title">Visualisasi Maze</span>
+          <span class="algo-badge" id="activeBadge"
+            style="background:#1E90FF20;color:var(--rb);border:1px solid var(--rb)">
+            Recursive Backtracking
+          </span>
+        </div>
+        <canvas id="mazeCanvas"></canvas>
+        <div class="legend">
+          <div class="legend-item">
+            <div class="swatch" style="background:#0d1117;border:1px solid #30363d"></div>Jalan
+          </div>
+          <div class="legend-item">
+            <div class="swatch" style="background:#484f58"></div>Tembok
+          </div>
+          <div class="legend-item">
+            <div class="swatch" style="background:var(--rb)"></div>Path Rec. BT (Biru)
+          </div>
+          <div class="legend-item">
+            <div class="swatch" style="background:var(--bt)"></div>Path Bin. Tree (Merah)
+          </div>
+          <div class="legend-item">
+            <div class="swatch" style="background:var(--green)"></div>Start
+          </div>
+          <div class="legend-item">
+            <div class="swatch" style="background:var(--red)"></div>End
+          </div>
+        </div>
+      </div>
+
+      <!-- Compare section (hidden until /solve/all) -->
+      <div id="compareSection" style="display:none">
+
+        <div class="canvas-wrap">
+          <div class="canvas-header">
+            <span class="canvas-title">Perbandingan Kedua Algoritma</span>
+          </div>
+
+          <!-- Shortest path banner -->
+          <div id="shortestBanner"
+            style="display:none;margin-bottom:12px;padding:9px 14px;border-radius:7px;font-size:13px;font-weight:600;border:1px solid;">
+          </div>
+
+          <!-- Comparison table -->
+          <div class="compare-grid" id="compareTable"></div>
+
+          <!-- Bar charts -->
+          <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-top:16px;">
+            <div>
+              <div class="card-title" style="margin-bottom:8px;">Waktu (ms) — lower better</div>
+              <div class="bar-chart" id="barTime"></div>
+            </div>
+            <div>
+              <div class="card-title" style="margin-bottom:8px;">Path length — higher = more diverse</div>
+              <div class="bar-chart" id="barPath"></div>
+            </div>
+          </div>
+
+          <!-- Mini canvases -->
+          <div class="card-title" style="margin-top:16px;margin-bottom:10px;">Visualisasi Tiap Algoritma</div>
+          <div class="mini-canvas-grid" id="miniCanvases"></div>
+
+        </div>
+      </div>
+
+    </main>
+  </div>
+
+  <div id="toast"></div>
+
+  <script>
+    const API = "http://127.0.0.1:5000";
+
+    const ALGOS = {
+      recursive_backtracking: {
+        label: "Recursive Backtracking",
+        color: "var(--rb)",
+        hex: "#1E90FF",
+        desc: "Recursive dengan 4 arah yang diacak tiap node. Backtrack dengan pop dari stack saat dead end."
+      },
+      binary_tree: {
+        label: "Binary Tree",
+        color: "var(--bt)",
+        hex: "#FF4444",
+        desc: "Tiap node membawa salinan path lengkap. Ekspansi kanan+bawah dulu, dead-end dikompensasi dari grandparent."
+      }
+    };
+
+    let selectedAlgo = "recursive_backtracking";
+    let uploadedImg = null;
+
+    // ── STATUS CHECK ──
+    async function checkBackend() {
+      try {
+        const res = await fetch(API + "/status", { signal: AbortSignal.timeout(3000) });
+        await res.json();
+        const pill = document.getElementById("statusPill");
+        pill.textContent = "● Backend Online";
+        pill.className = "status-pill online";
+      } catch {
+        const pill = document.getElementById("statusPill");
+        pill.textContent = "○ Backend Offline";
+        pill.className = "status-pill offline";
+      }
+    }
+    checkBackend();
+
+    // ── ALGO SELECTOR ──
+    function selectAlgo(btn) {
+      document.querySelectorAll(".algo-tab").forEach(t => t.classList.remove("active"));
+      btn.classList.add("active");
+      selectedAlgo = btn.dataset.algo;
+      const info = ALGOS[selectedAlgo];
+      document.getElementById("algoDesc").textContent = info.desc;
+
+      const badge = document.getElementById("activeBadge");
+      badge.textContent = info.label;
+      badge.style.background = info.hex + "20";
+      badge.style.color = info.hex;
+      badge.style.borderColor = info.hex;
+    }
+
+    // ── INPUT MODE SWITCH ──
+    function switchMode(mode, btn) {
+      document.querySelectorAll(".mode-tab").forEach(t => t.classList.remove("active"));
+      btn.classList.add("active");
+      document.getElementById("textMode").style.display = mode === "text" ? "" : "none";
+      document.getElementById("imageMode").style.display = mode === "image" ? "" : "none";
+    }
+
+    // ── IMAGE UPLOAD ──
+    function handleDrop(e) {
+      e.preventDefault();
+      document.getElementById("uploadZone").classList.remove("drag-over");
+      const file = e.dataTransfer.files[0];
+      if (file && file.type.startsWith("image/")) handleImageFile(file);
+    }
+
+    function handleImageFile(file) {
+      if (!file) return;
+      const reader = new FileReader();
+      reader.onload = (e) => {
+        const img = new Image();
+        img.onload = () => {
+          uploadedImg = img;
+          document.getElementById("previewImg").src = e.target.result;
+          document.getElementById("uploadPreview").style.display = "";
+          document.getElementById("uploadZone").style.display = "none";
+          document.getElementById("imgConfig").style.display = "";
+          processImage();
+        };
+        img.src = e.target.result;
+      };
+      reader.readAsDataURL(file);
+    }
+
+    function clearImage() {
+      uploadedImg = null;
+      document.getElementById("uploadPreview").style.display = "none";
+      document.getElementById("uploadZone").style.display = "";
+      document.getElementById("imgConfig").style.display = "none";
+      document.getElementById("imgProcessInfo").textContent = "";
+    }
+
+    function processImage() {
+      if (!uploadedImg) return;
+      const threshold = parseInt(document.getElementById("threshSlider").value);
+      const resolution = parseInt(document.getElementById("resSlider").value);
+
+      const offCanvas = document.createElement("canvas");
+      offCanvas.width = resolution;
+      offCanvas.height = Math.round(resolution * uploadedImg.height / uploadedImg.width);
+      const ctx = offCanvas.getContext("2d");
+      ctx.drawImage(uploadedImg, 0, 0, offCanvas.width, offCanvas.height);
+
+      const { data } = ctx.getImageData(0, 0, offCanvas.width, offCanvas.height);
+      const rows = offCanvas.height, cols = offCanvas.width;
+      const maze = [];
+      for (let r = 0; r < rows; r++) {
+        const row = [];
+        for (let c = 0; c < cols; c++) {
+          const i = (r * cols + c) * 4;
+          const brightness = data[i] * 0.299 + data[i + 1] * 0.587 + data[i + 2] * 0.114;
+          row.push(brightness < threshold ? 1 : 0);
+        }
+        maze.push(row);
+      }
+      maze[0][0] = 0;
+      maze[rows - 1][cols - 1] = 0;
+
+      // Sync ke textarea agar dipake solve
+      document.getElementById("mazeInput").value = maze.map(r => r.join(" ")).join("\n");
+
+      const walls = maze.flat().filter(v => v === 1).length;
+      document.getElementById("imgProcessInfo").textContent =
+        `Grid: ${rows}×${cols} · Tembok: ${walls}/${rows * cols} (${Math.round(walls / (rows * cols) * 100)}%) · Siap di-solve ✓`;
+    }
+
+    // ── PARSE MAZE ──
+    function parseMaze(txt) {
+      try {
+        return txt.trim().split("\n").map(r => r.trim().split(/\s+/).map(Number));
+      } catch { return []; }
+    }
+
+    // ── SOLVE SINGLE ──
+    async function solveSingle() {
+      const maze = parseMaze(document.getElementById("mazeInput").value);
+      if (!maze.length || !maze[0].length) { toast("Maze tidak valid"); return; }
+
+      setLoading(true);
+      document.getElementById("compareSection").style.display = "none";
+
+      try {
+        const res = await fetch(API + "/solve", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ maze, algorithm: selectedAlgo })
+        });
+        const d = await res.json();
+        if (d.error) { toast("Error: " + d.error); return; }
+
+        drawMaze("mazeCanvas", maze, d.path, d.path_color || ALGOS[selectedAlgo].hex);
+
+        const mPath = document.getElementById("mPath");
+        const mTime = document.getElementById("mTime");
+        const mDepth = document.getElementById("mDepth");
+        const mFound = document.getElementById("mFound");
+
+        mPath.textContent = d.path_length ?? d.path?.length ?? 0;
+        mTime.textContent = (d.time_ms ?? d.time ?? 0).toFixed(4);
+        mDepth.textContent = d.max_recursion_depth ?? "—";
+        mFound.textContent = d.found ? "✓ Ya" : "✗ Tidak";
+
+        mPath.className = "metric-value";
+        mTime.className = "metric-value";
+        mDepth.className = "metric-value " + (d.max_recursion_depth > 1000 ? "bad" : d.max_recursion_depth > 500 ? "warn" : "good");
+        mFound.className = "metric-value " + (d.found ? "good" : "bad");
+
+        document.getElementById("metricsCard").style.display = "";
+        document.getElementById("singleSection").style.display = "";
+
+      } catch (e) {
+        toast("Gagal terhubung ke backend — pastikan Flask berjalan");
+      } finally {
+        setLoading(false);
+      }
+    }
+
+    // ── SOLVE ALL (COMPARE) ──
+    async function solveAll() {
+      const maze = parseMaze(document.getElementById("mazeInput").value);
+      if (!maze.length) { toast("Maze tidak valid"); return; }
+
+      setLoading(true);
+
+      try {
+        const res = await fetch(API + "/solve/all", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ maze })
+        });
+        const d = await res.json();
+        if (d.error) { toast("Error: " + d.error); return; }
+
+        const comp = d.comparison;
+        renderCompareTable(comp);
+        renderBarCharts(comp);
+        renderMiniCanvases(maze, comp);
+
+        // Shortest path banner
+        if (d.shortest) {
+          const s = d.shortest;
+          const banner = document.getElementById("shortestBanner");
+          banner.style.display = "";
+          banner.style.color = s.shortest_color;
+          banner.style.borderColor = s.shortest_color;
+          banner.style.background = s.shortest_color + "15";
+          banner.innerHTML = `<strong>Shortest path:</strong> ${s.shortest_algorithm} &nbsp;|&nbsp; Rec. BT: ${s.recursive_backtracking_length ?? "—"} &nbsp;vs&nbsp; Binary Tree: ${s.binary_tree_length ?? "—"} langkah`;
+        }
+
+        // Canvas utama & metrics mengikuti algo yang DIPILIH user
+        const selected = comp[selectedAlgo];
+        if (selected && !selected.error) {
+          const info = ALGOS[selectedAlgo];
+
+          // Gambar canvas utama dengan algo terpilih
+          drawMaze("mazeCanvas", maze, selected.path, selected.path_color || info.hex);
+
+          // Update badge
+          const badge = document.getElementById("activeBadge");
+          badge.textContent = info.label;
+          badge.style.background = info.hex + "20";
+          badge.style.color = info.hex;
+          badge.style.borderColor = info.hex;
+
+          // Update metrics sesuai algo terpilih
+          const mPath = document.getElementById("mPath");
+          const mTime = document.getElementById("mTime");
+          const mDepth = document.getElementById("mDepth");
+          const mFound = document.getElementById("mFound");
+
+          mPath.textContent = selected.path_length ?? 0;
+          mTime.textContent = (selected.time_ms ?? 0).toFixed(4);
+          mDepth.textContent = selected.max_recursion_depth ?? "—";
+          mFound.textContent = selected.found ? "Ya" : "Tidak";
+
+          mPath.className = "metric-value";
+          mTime.className = "metric-value";
+          mDepth.className = "metric-value " + (selected.max_recursion_depth > 1000 ? "bad" : selected.max_recursion_depth > 500 ? "warn" : "good");
+          mFound.className = "metric-value " + (selected.found ? "good" : "bad");
+
+          document.getElementById("metricsCard").style.display = "";
+        }
+
+        document.getElementById("singleSection").style.display = "";
+        document.getElementById("compareSection").style.display = "";
+
+      } catch (e) {
+        toast("Gagal terhubung ke backend");
+      } finally {
+        setLoading(false);
+      }
+    }
+
+    // ── DRAW MAZE ──
+    function drawMaze(canvasId, maze, path, pathColor, cellSize) {
+      const canvas = document.getElementById(canvasId);
+      const ctx = canvas.getContext("2d");
+      const rows = maze.length, cols = maze[0].length;
+
+      // Auto cell size
+      if (!cellSize) {
+        const maxW = canvas.parentElement.clientWidth - 32;
+        cellSize = Math.max(6, Math.min(40, Math.floor(maxW / cols)));
+      }
+
+      canvas.width = cols * cellSize;
+      canvas.height = rows * cellSize;
+
+      const pathSet = new Set((path || []).map(p => p[0] + "," + p[1]));
+
+      for (let r = 0; r < rows; r++) {
+        for (let c = 0; c < cols; c++) {
+          let color = maze[r][c] === 1 ? "#484f58" : "#0d1117";
+          if (pathSet.has(r + "," + c)) color = pathColor || "#1E90FF";
+          if (r === 0 && c === 0) color = "#3fb950";
+          if (r === rows - 1 && c === cols - 1) color = "#f78166";
+
+          ctx.fillStyle = color;
+          ctx.fillRect(c * cellSize, r * cellSize, cellSize, cellSize);
+
+          if (cellSize > 8) {
+            ctx.strokeStyle = "#21262d";
+            ctx.lineWidth = 0.5;
+            ctx.strokeRect(c * cellSize, r * cellSize, cellSize, cellSize);
+          }
+        }
+      }
+    }
+
+    // ── COMPARE TABLE ──
+    function renderCompareTable(comp) {
+      const algoKeys = Object.keys(ALGOS);
+      const container = document.getElementById("compareTable");
+      container.innerHTML = "";
+
+      algoKeys.forEach(key => {
+        const info = ALGOS[key];
+        const d = comp[key];
+        const col = document.createElement("div");
+        col.className = "compare-col";
+        col.style.borderTop = `2px solid ${info.hex}`;
+
+        if (!d || d.error) {
+          col.innerHTML = `
+        <div class="compare-col-header" style="color:${info.hex}">${info.label}</div>
+        <div class="compare-col-body" style="color:var(--red);font-size:12px">${d?.error ?? "Error"}</div>`;
+        } else {
+          const found = d.found ? `<span style="color:var(--green)">✓ Ya</span>` : `<span style="color:var(--red)">✗ Tidak</span>`;
+          const depthColor = d.max_recursion_depth > 1000 ? "var(--red)" : d.max_recursion_depth > 500 ? "var(--orange)" : "var(--green)";
+          col.innerHTML = `
+        <div class="compare-col-header" style="color:${info.hex}">${info.label}</div>
+        <div class="compare-col-body">
+          <div class="compare-row"><span class="compare-key">Ditemukan</span><span class="compare-val">${found}</span></div>
+          <div class="compare-row"><span class="compare-key">Path length</span><span class="compare-val">${d.path_length ?? d.path?.length ?? 0}</span></div>
+          <div class="compare-row"><span class="compare-key">Waktu (ms)</span><span class="compare-val">${(d.time_ms ?? 0).toFixed(4)}</span></div>
+          <div class="compare-row"><span class="compare-key">Depth peak</span><span class="compare-val" style="color:${depthColor}">${d.max_recursion_depth ?? "—"}</span></div>
+        </div>`;
+        }
+        container.appendChild(col);
+      });
+    }
+
+    // ── BAR CHARTS ──
+    function renderBarCharts(comp) {
+      const algoKeys = Object.keys(ALGOS);
+
+      const times = algoKeys.map(k => comp[k]?.time_ms ?? 0);
+      const maxTime = Math.max(...times) || 1;
+      document.getElementById("barTime").innerHTML = algoKeys.map((k, i) => `
+    <div class="bar-row">
+      <span class="bar-name" style="color:${ALGOS[k].hex}">${ALGOS[k].label}</span>
+      <div class="bar-track"><div class="bar-fill" style="width:${(times[i] / maxTime * 100).toFixed(1)}%;background:${ALGOS[k].hex}"></div></div>
+      <span class="bar-val">${times[i].toFixed(3)}</span>
+    </div>`).join("");
+
+      const paths = algoKeys.map(k => comp[k]?.path_length ?? comp[k]?.path?.length ?? 0);
+      const maxPath = Math.max(...paths) || 1;
+      document.getElementById("barPath").innerHTML = algoKeys.map((k, i) => `
+    <div class="bar-row">
+      <span class="bar-name" style="color:${ALGOS[k].hex}">${ALGOS[k].label}</span>
+      <div class="bar-track"><div class="bar-fill" style="width:${(paths[i] / maxPath * 100).toFixed(1)}%;background:${ALGOS[k].hex}"></div></div>
+      <span class="bar-val">${paths[i]}</span>
+    </div>`).join("");
+    }
+
+    // ── MINI CANVASES ──
+    function renderMiniCanvases(maze, comp) {
+      const container = document.getElementById("miniCanvases");
+      container.innerHTML = "";
+
+      Object.keys(ALGOS).forEach(key => {
+        const info = ALGOS[key];
+        const d = comp[key];
+        const wrap = document.createElement("div");
+        wrap.className = "mini-canvas-wrap";
+
+        const title = document.createElement("div");
+        title.className = "mini-canvas-title";
+        title.style.color = info.hex;
+        title.textContent = info.label;
+        wrap.appendChild(title);
+
+        const canvasId = "mini-" + key;
+        const cvs = document.createElement("canvas");
+        cvs.id = canvasId;
+        cvs.className = "mini";
+        wrap.appendChild(cvs);
+
+        if (d && !d.error) {
+          const info2 = document.createElement("div");
+          info2.style.cssText = "font-size:11px;color:var(--muted);margin-top:6px;";
+          info2.textContent = `Path: ${d.path_length ?? 0} • Waktu: ${(d.time_ms ?? 0).toFixed(3)} ms • Depth: ${d.max_recursion_depth ?? "—"}`;
+          wrap.appendChild(info2);
+        }
+
+        container.appendChild(wrap);
+
+        requestAnimationFrame(() => {
+          if (d && !d.error) {
+            const maxW = wrap.clientWidth - 24;
+            const cellSize = Math.max(4, Math.min(20, Math.floor(maxW / maze[0].length)));
+            drawMaze(canvasId, maze, d.path, d.path_color || info.hex, cellSize);
+          } else {
+            const cvs2 = document.getElementById(canvasId);
+            const ctx = cvs2.getContext("2d");
+            cvs2.width = 200; cvs2.height = 60;
+            ctx.fillStyle = "#f78166";
+            ctx.font = "12px sans-serif";
+            ctx.fillText(d?.error ?? "Error", 8, 30);
+          }
+        });
+      });
+    }
+
+    // ── RANDOM MAZE ──
+    async function generateRandom() {
+      const rows = +document.getElementById("rows").value;
+      const cols = +document.getElementById("cols").value;
+      const density = +document.getElementById("density").value;
+
+      try {
+        const res = await fetch(API + "/random", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ rows, cols, density })
+        });
+        const d = await res.json();
+        document.getElementById("mazeInput").value = d.maze.map(r => r.join(" ")).join("\n");
+        // Pastikan mode teks aktif
+        switchMode("text", document.querySelector(".mode-tab"));
+        document.querySelectorAll(".mode-tab").forEach((t, i) => t.classList.toggle("active", i === 0));
+        toast("Maze baru berhasil di-generate!");
+      } catch {
+        toast("Backend belum berjalan");
+      }
+    }
+
+    // ── RESET ──
+    function resetMaze() {
+      document.getElementById("mazeInput").value = "0 1 0 0 0\n0 1 0 1 0\n0 0 0 1 0\n1 1 0 1 0\n0 0 0 0 0";
+      document.getElementById("metricsCard").style.display = "none";
+      document.getElementById("compareSection").style.display = "none";
+      document.getElementById("shortestBanner").style.display = "none";
+      clearImage();
+      switchMode("text", document.querySelector(".mode-tab"));
+      document.querySelectorAll(".mode-tab").forEach((t, i) => t.classList.toggle("active", i === 0));
+      const cv = document.getElementById("mazeCanvas");
+      cv.width = 0; cv.height = 0;
+    }
+
+    // ── LOADING ──
+    function setLoading(on) {
+      const btn = document.querySelector(".btn-primary");
+      const btn2 = document.querySelector(".btn-compare");
+      if (on) {
+        btn.innerHTML = '<span class="spinner"></span> Memproses...';
+        btn2.innerHTML = '<span class="spinner"></span> Memproses...';
+        btn.disabled = btn2.disabled = true;
+      } else {
+        btn.innerHTML = "▶ Solve dengan Algoritma Terpilih";
+        btn2.innerHTML = "⇄ Bandingkan Kedua Algoritma";
+        btn.disabled = btn2.disabled = false;
+      }
+    }
+
+    // ── TOAST ──
+    function toast(msg) {
+      const el = document.getElementById("toast");
+      el.textContent = msg;
+      el.classList.add("show");
+      setTimeout(() => el.classList.remove("show"), 3000);
+    }
+  </script>
+
+
+</body>
+
+</html>
