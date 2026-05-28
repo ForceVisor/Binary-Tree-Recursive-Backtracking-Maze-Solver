@@ -54,7 +54,7 @@ Langkah 2: Menjalankan Frontend dengan membuka file HTML frontend yaitu mazeee.h
 
 ### Cara Penggunaan Aplikasi
 
-Pilih Algoritma dengan cara klik tab Recursive Backtracking atau Binary Tree di panel sisi kiri. Masukkan labirin dengan start kiri atas beserta finish yaitu kanan bawah. 
+Pilih Algoritma dengan cara klik tab Recursive Backtracking atau Binary Tree di panel sisi kiri. Masukkan labirin menggunakan fitur manual, _random generate_, atau input image dengan catatan kiri atas berupa start beserta kanan atas yang berupa _finish_. 
 
 
 
