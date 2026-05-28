@@ -2,7 +2,7 @@
 
 
 
-Algorithm Aplikasi web interaktif untuk menghasilkan, memvisualisasikan, dan menyelesaikan maze (labirin) menggunakan dua algoritma pencarian rute: Recursive Backtracking dan Binary Tree. Aplikasi ini memisahkan logika pemrosesan di backend (Python/Flask) dan antarmuka pengguna interaktif di frontend (HTML).  
+Algorithma aplikasi web interaktif untuk menghasilkan, memvisualisasikan, dan menyelesaikan maze (labirin) menggunakan dua algoritma pencarian rute: Recursive Backtracking dan Binary Tree. Aplikasi ini memisahkan logika pemrosesan di backend (Python/Flask) dan antarmuka pengguna interaktif di frontend (HTML).  
 
 
 
