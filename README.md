@@ -45,7 +45,7 @@ Langkah 1: Menjalankan backend (Flask) dengan membuka terminal atau command prom
  ```bash
  pip install flask_cors
   ```
-Lalu jalankan file python yaitu app.py
+Lalu jalankan file python yaitu app.py.
 Pastikan terminal memunculkan pesan: Maze Solver Backend 2 Algorithms dan berjalan di \[http://127.0.0.1:5000](http://127.0.0.1:5000)]. 
  
 
