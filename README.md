@@ -46,7 +46,7 @@ Langkah 1: Menjalankan backend (Flask) dengan membuka terminal atau command prom
  pip install flask_cors
   ```
 Lalu jalankan file python yaitu app.py.
-Pastikan terminal memunculkan pesan: Maze Solver Backend 2 Algorithms dan berjalan di \[http://127.0.0.1:5000](http://127.0.0.1:5000)\]. 
+Pastikan terminal memunculkan pesan: Maze Solver Backend 2 Algorithms dan berjalan di \[http://127.0.0.1:5000](http://127.0.0.1:5000) ]. 
  
 
 Langkah 2: Menjalankan Frontend dengan membuka file HTML frontend yaitu mazeee.html dengan langsung menggunakan web browser (Edge, Brave, Chrome), pada VsCode beberapa browser tidak dapat menampilkan secara langsung, harus membuat file json yang diperintahkan vscode.Status di pojok kanan atas layar secara otomatis akan mendeteksi dan menampilkan Backend Online jika koneksi berhasil.
