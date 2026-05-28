@@ -6,7 +6,7 @@ Algorithma aplikasi web interaktif untuk menghasilkan, memvisualisasikan, dan me
 
 
 
-##### Fitur Utama
+#### Fitur Utama
 
 
 *maze solver* ini yaitu menyediakan opsi penyelesaian menggunakan algoritma Recursive Backtracking atau Binary Tree.  
@@ -22,7 +22,7 @@ Generate Maze Acak: Membuat maze baru secara instan dengan menyesuaikan jumlah b
 Visualisasi Interaktif: Menampilkan pergerakan dan rute secara real time dengan HTML.
 
 
-##### Algoritma yang Digunakan
+#### Algoritma yang Digunakan
 
 1\. Recursive Backtracking (Rute Biru) Menggunakan pendekatan explicit stack untuk mencegah stack overflow pada labirin yang sangat besar.  Sistem mengeksplorasi 4 arah yang diacak pada setiap node untuk memastikan keragaman jalur (path diversity). Jika menemukan jalan buntu (dead end), algoritma akan melakukan backtrack dengan melakukan pop dari stack.  
 
@@ -32,7 +32,7 @@ Visualisasi Interaktif: Menampilkan pergerakan dan rute secara real time dengan 
 
 
 
-##### Panduan Instalasi \& Menjalankan Aplikasi
+#### Panduan Instalasi \& Menjalankan Aplikasi
 
 Pastikan komputer Anda telah menginstall Python 3.x.
 
@@ -46,7 +46,7 @@ Pastikan terminal memunculkan pesan: Maze Solver Backend 2 Algorithms dan berjal
 Langkah 2: Menjalankan Frontend dengan membuka file HTML frontend yaitu mazeee.html dengan langsung menggunakan web browser (Edge, Brave, Chrome), pada VsCode beberapa browser tidak dapat menampilkan secara langsung, harus membuat file json yang diperintahkan vscode.Status di pojok kanan atas layar secara otomatis akan mendeteksi dan menampilkan Backend Online jika koneksi berhasil.
 
 
-##### Cara Penggunaan Aplikasi
+#### Cara Penggunaan Aplikasi
 
 Pilih Algoritma dengan cara klik tab Recursive Backtracking atau Binary Tree di panel sisi kiri. Masukkan labirin dengan start kiri atas beserta finish yaitu kanan bawah. 
 
