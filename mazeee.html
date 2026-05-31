@@ -1070,13 +1070,13 @@
         maze.push(row);
       }
 
-      // ── LANGKAH 4: Paksa titik Start dan End selalu jalan ──
+      // ── LANGKAH 4: Paksa titik Start dan End selalu jalan
       // Pojok kiri-atas (0,0) = titik START, harus selalu bisa dimasuki
       maze[0][0] = 0;
       // Pojok kanan-bawah = titik END/FINISH, harus selalu bisa dicapai
       maze[rows - 1][cols - 1] = 0;
 
-      // ── LANGKAH 5: Sync hasil ke textarea agar bisa dikirim ke backend ──
+      // ── LANGKAH 5: Sync hasil ke textarea agar bisa dikirim ke backend
       // Maze diubah dari array 2D menjadi string teks "0 1 0\n1 0 1\n..."
       document.getElementById("mazeInput").value = maze.map(r => r.join(" ")).join("\n");
 
@@ -1131,7 +1131,7 @@
         document.getElementById("singleSection").style.display = "";
 
       } catch (e) {
-        toast("Gagal terhubung ke backend — pastikan Flask berjalan");
+        toast("Gagal terhubung ke backend. Pastikan Flask berjalan");
       } finally {
         setLoading(false);
       }
