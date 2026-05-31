@@ -964,28 +964,44 @@
     }
 
     // ── IMAGE UPLOAD ──
+
+    // Menangani event drag-and-drop gambar ke area upload
     function handleDrop(e) {
-      e.preventDefault();
+      e.preventDefault(); // Mencegah browser membuka file secara langsung
       document.getElementById("uploadZone").classList.remove("drag-over");
       const file = e.dataTransfer.files[0];
+      // Hanya proses jika file yang di-drop adalah gambar
       if (file && file.type.startsWith("image/")) handleImageFile(file);
     }
 
+    // Fungsi utama untuk membaca file gambar yang dipilih user
     function handleImageFile(file) {
       if (!file) return;
+
+      // FileReader digunakan untuk membaca isi file secara asinkron
       const reader = new FileReader();
+
       reader.onload = (e) => {
+        // Membuat elemen Image agar browser dapat memuat piksel gambar
         const img = new Image();
+
         img.onload = () => {
-          uploadedImg = img;
+          uploadedImg = img; // Simpan objek gambar ke variabel global untuk diproses
+
+          // Tampilkan preview gambar di UI
           document.getElementById("previewImg").src = e.target.result;
           document.getElementById("uploadPreview").style.display = "";
           document.getElementById("uploadZone").style.display = "none";
           document.getElementById("imgConfig").style.display = "";
+
+          // Langsung proses gambar menjadi grid maze
           processImage();
         };
-        img.src = e.target.result;
+
+        img.src = e.target.result; // Memuat gambar dari hasil pembacaan FileReader
       };
+
+      // Membaca file sebagai Data URL (base64) agar bisa ditampilkan & diproses
       reader.readAsDataURL(file);
     }
 
@@ -997,35 +1013,74 @@
       document.getElementById("imgProcessInfo").textContent = "";
     }
 
+    /**
+     * processImage() — FUNGSI INTI: Mengubah gambar menjadi grid maze (matriks 0 dan 1)
+     *
+     * Cara kerja:
+     *  1. Gambar di-resize ke resolusi grid yang ditentukan slider
+     *  2. Setiap piksel dianalisis kecerahannya (grayscale)
+     *  3. Piksel gelap (< threshold) → dianggap TEMBOK (nilai 1)
+     *     Piksel terang (>= threshold) → dianggap JALAN (nilai 0)
+     *  4. Hasil matriks di-tulis ke textarea untuk dikirim ke backend
+     */
     function processImage() {
       if (!uploadedImg) return;
+
+      // Ambil nilai threshold dari slider (batas gelap/terang piksel, default 180)
       const threshold = parseInt(document.getElementById("threshSlider").value);
+
+      // Ambil nilai resolusi grid dari slider (jumlah kolom sel, default 60)
+      // Semakin besar nilai ini, semakin detail grid mazenya
       const resolution = parseInt(document.getElementById("resSlider").value);
 
+      // ── LANGKAH 1: Resize gambar ke ukuran grid ──
+      // Buat canvas tersembunyi (offscreen) sebagai media untuk membaca piksel
       const offCanvas = document.createElement("canvas");
-      offCanvas.width = resolution;
+      offCanvas.width = resolution; // Lebar grid = nilai slider resolusi
+      // Tinggi grid dihitung proporsional agar gambar tidak gepeng/terdistorsi
       offCanvas.height = Math.round(resolution * uploadedImg.height / uploadedImg.width);
       const ctx = offCanvas.getContext("2d");
+
+      // Gambar ulang (resize) gambar asli ke ukuran grid yang lebih kecil
       ctx.drawImage(uploadedImg, 0, 0, offCanvas.width, offCanvas.height);
 
+      // ── LANGKAH 2: Baca data piksel dari canvas ──
+      // getImageData mengembalikan array flat berisi nilai RGBA setiap piksel
+      // Format: [R, G, B, A, R, G, B, A, ...] — 4 nilai per piksel
       const { data } = ctx.getImageData(0, 0, offCanvas.width, offCanvas.height);
       const rows = offCanvas.height, cols = offCanvas.width;
       const maze = [];
+
+      // ── LANGKAH 3: Konversi setiap piksel menjadi sel maze (0 atau 1) ──
       for (let r = 0; r < rows; r++) {
         const row = [];
         for (let c = 0; c < cols; c++) {
+          // Hitung indeks awal piksel (r,c) dalam array data RGBA
+          // Setiap piksel menempati 4 slot: R=i, G=i+1, B=i+2, A=i+3
           const i = (r * cols + c) * 4;
+
+          // Hitung kecerahan piksel menggunakan rumus luminance standar (ITU-R BT.601)
+          // Mata manusia lebih sensitif terhadap hijau, lalu merah, lalu biru
           const brightness = data[i] * 0.299 + data[i + 1] * 0.587 + data[i + 2] * 0.114;
+
+          // Jika kecerahan di bawah threshold → piksel GELAP → TEMBOK (1)
+          // Jika kecerahan di atas threshold  → piksel TERANG → JALAN  (0)
           row.push(brightness < threshold ? 1 : 0);
         }
         maze.push(row);
       }
+
+      // ── LANGKAH 4: Paksa titik Start dan End selalu jalan ──
+      // Pojok kiri-atas (0,0) = titik START, harus selalu bisa dimasuki
       maze[0][0] = 0;
+      // Pojok kanan-bawah = titik END/FINISH, harus selalu bisa dicapai
       maze[rows - 1][cols - 1] = 0;
 
-      // Sync ke textarea agar dipake solve
+      // ── LANGKAH 5: Sync hasil ke textarea agar bisa dikirim ke backend ──
+      // Maze diubah dari array 2D menjadi string teks "0 1 0\n1 0 1\n..."
       document.getElementById("mazeInput").value = maze.map(r => r.join(" ")).join("\n");
 
+      // Tampilkan info statistik hasil konversi (ukuran grid & persentase tembok)
       const walls = maze.flat().filter(v => v === 1).length;
       document.getElementById("imgProcessInfo").textContent =
         `Grid: ${rows}×${cols} · Tembok: ${walls}/${rows * cols} (${Math.round(walls / (rows * cols) * 100)}%) · Siap di-solve ✓`;
