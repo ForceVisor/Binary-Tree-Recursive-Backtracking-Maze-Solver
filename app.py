@@ -4,8 +4,8 @@ import random
 import time
 import sys
 
-app = Flask(__name__)
-CORS(app)
+app = Flask(__name__)          # Buat instance aplikasi Flask
+CORS(app)                      # Izinkan request lintas-origin dari browser
 
 # Increase recursion limit for large mazes
 sys.setrecursionlimit(10000)
@@ -17,13 +17,14 @@ def generate_random_maze(rows, cols, density=0.3):
     for r in range(rows):
         row = []
         for c in range(cols):
+            # Jika angka acak < density → tembok (1), selain itu → jalan (0)
             if random.random() < density:
                 row.append(1)
             else:
                 row.append(0)
         maze.append(row)
-    maze[0][0] = 0
-    maze[rows - 1][cols - 1] = 0
+    maze[0][0] = 0                    # Paksa titik START selalu jalan
+    maze[rows - 1][cols - 1] = 0     # Paksa titik END selalu jalan
     return maze
 
 
@@ -210,9 +211,11 @@ def pick_shortest(result_rb, result_bt):
     Return dict berisi info algoritma mana yang menghasilkan path lebih pendek,
     beserta warnanya untuk ditampilkan di frontend.
     """
+    # Jika algoritma gagal menemukan path, panjangnya dianggap tak terhingga
     len_rb = result_rb.get("path_length", float("inf")) if result_rb.get("found") else float("inf")
     len_bt = result_bt.get("path_length", float("inf")) if result_bt.get("found") else float("inf")
 
+    # Pemenang = path lebih pendek; jika sama, Recursive Backtracking dipilih
     if len_rb <= len_bt:
         winner = "Recursive Backtracking"
         color  = RecursiveBacktracking.PATH_COLOR 
@@ -254,19 +257,20 @@ def solve_maze():
     try:
         data = request.get_json()
         maze = data["maze"]
-        algorithm = data.get("algorithm", "recursive_backtracking")
+        algorithm = data.get("algorithm", "recursive_backtracking")  # Default: Recursive Backtracking
 
+        # Peta nama algoritma ke kelasnya masing-masing
         solvers = {
             "recursive_backtracking": RecursiveBacktracking,
             "binary_tree": BinaryTree,
         }
 
-        if algorithm not in solvers:
+        if algorithm not in solvers:  # Validasi nama algoritma
             return jsonify({
                 "error": f"Algorithm '{algorithm}' tidak ditemukan. Pilih dari: {list(solvers.keys())}"
             }), 400
 
-        solver = solvers[algorithm](maze)
+        solver = solvers[algorithm](maze)  # Buat instance solver sesuai pilihan
         result = solver.solve()
 
         return jsonify({
@@ -317,9 +321,9 @@ def random_maze():
     """Generate random maze dengan ukuran dan density yang ditentukan."""
     try:
         data = request.get_json()
-        rows    = int(data["rows"])
-        cols    = int(data["cols"])
-        density = float(data["density"])
+        rows    = int(data["rows"])       # Jumlah baris
+        cols    = int(data["cols"])       # Jumlah kolom
+        density = float(data["density"]) # Proporsi tembok (0.0 – 1.0)
         maze = generate_random_maze(rows, cols, density)
         return jsonify({"maze": maze})
     except Exception as e:
