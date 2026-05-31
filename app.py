@@ -17,7 +17,7 @@ def generate_random_maze(rows, cols, density=0.3):
     for r in range(rows):
         row = []
         for c in range(cols):
-            # Jika angka acak < density → tembok (1), selain itu → jalan (0)
+            # Jika angka acak < density, tembok (1), selain itu, jalan (0)
             if random.random() < density:
                 row.append(1)
             else:
@@ -29,9 +29,9 @@ def generate_random_maze(rows, cols, density=0.3):
 
 
 # ALGORITHM 1 — RECURSIVE BACKTRACKING
-# - Eksplorasi 4 arah secara acak
-# - Iterative (explicit stack) → hindari stack overflow
-# - Backtrack dengan pop dari stack
+#Eksplorasi 4 arah secara acak
+#Iterative (explicit stack): hindari stack overflow
+#Backtrack dengan pop dari stack
 
 class RecursiveBacktracking:
 
@@ -48,7 +48,7 @@ class RecursiveBacktracking:
         visited = set()
         visited.add((0, 0))
 
-        # Stack menyimpan: (r, c, list_arah_yang_belum_dicoba)
+        # Stack menyimpan: (r, c, list arah yang belum dicoba)
         # 4 arah diacak tiap node baru untuk path diversity
         explicit_stack = [(0, 0, self._shuffled_dirs())]
 
@@ -98,15 +98,15 @@ class RecursiveBacktracking:
         }
 
     def _shuffled_dirs(self):
-        """4 arah diacak — menghasilkan path yang beragam tiap run."""
+        """4 arah diacak menghasilkan path yang beragam tiap run."""
         dirs = [(0, 1), (1, 0), (0, -1), (-1, 0)]
         random.shuffle(dirs)
         return dirs
 
 # ALGORITHM 2 — BINARY TREE
-# - Ekspansi level-by-level menggunakan queue
-# - Tiap node di queue membawa salinan path lengkap
-# - Dead-end ditandai, grandparent direexplore
+#Ekspansi level-by-level menggunakan queue
+#Tiap node di queue membawa salinan path lengkap
+#Dead-end ditandai, grandparent direexplore
 
 class BinaryTree:
 
